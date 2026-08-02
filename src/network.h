@@ -12,4 +12,6 @@ ssize_t receive_packet(int sock, char *buffer, size_t size);
 
 int close_socket(int socket);
 
+int serverlogin();
+
 #endif
