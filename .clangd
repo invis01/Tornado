@@ -1,0 +1,4 @@
+# that damn warning was bugging me so this is my fix.
+CompileFlags:
+  Add:
+    - -Wno-pragma-pack

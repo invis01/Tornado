@@ -1,62 +1,28 @@
-#include "network.h"
-#include "importantstuff.h"
-#include <stdio.h>
+#include "physics.h"
+#include "objects.h"
+#include "camera.h"
+#include "math.h"
+#include "input.h"
+#include <raymath.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 #include <raylib.h>
-#include <math.h>
+#include <sys/types.h>
 
 #define PORT 7777
 #define SERVER_ADDR "connect.playvortex.io"
+#define MAX_ENTITIES 512
 char packet_buffer[256];
 int sock;
 
-void normalizeXZ(Vector3* vector, float max) {
-    float magnitude = sqrtf(vector->x * vector->x + vector->z * vector->z);
-
-    if (magnitude > 0.0f) {
-            vector->x /= magnitude;
-            vector->z /= magnitude;
-    }
-}
-
-void updatepos(Vector3* pos, Vector3* vel) {
-    pos->x += vel ->x;
-    pos->y += vel ->y;
-    pos->z += vel ->z;
-}
-
 int main(int argc, char *argv[]) {
-    sock = init_socket(SERVER_ADDR, PORT);
-
-    /*
-    if (serverlogin()) {
-        printf("Login successfull!\n");
-    } else {
-        printf("Login unsuccessfull...\n");
-    }
-    */
-    struct playerstate player = {0};
-
-    initialize_playerstate(&player);
-    player.pos_y = 80;
-
-    const int screenWidth = 800;
+    const int screenWidth = 860;
     const int screenHeight = 480;
 
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "Tornado - Graphics Test");
     SetTargetFPS(120);
-    unsigned char buffer[sizeof(player)];
-    /*
-    while (1) {
-        player.pos_y -= .1;
-        memcpy(buffer, &player, sizeof(player));
-        send_packet(sock, buffer, sizeof(buffer));
-        usleep(50000);
-    }
-    */
 
     Camera camera = { 0 };
     camera.position = (Vector3){ 0.0f, 5.0f, 9.0f };    // Camera position
@@ -64,63 +30,75 @@ int main(int argc, char *argv[]) {
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
     camera.fovy = 60.0f;                                // Camera field-of-view Y
     camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
-    float camYaw, camPitch, camDistance, minDistance, maxDistance = 0;
 
-    Vector3 cubepos = (Vector3){0.0f, 0.0f, 0.0f};
-    Vector3 cubevel = (Vector3){0.0f, 0.0f, 0.0f};
-    char* charbuffer = malloc(128);
+    struct TransformComponent TransformComponents[MAX_ENTITIES];
+    struct PartComponent PartComponents[MAX_ENTITIES];
+    struct CharacterComponent CharacterComponents[MAX_ENTITIES];
+    struct CameraComponent CameraComponents[MAX_ENTITIES];
 
+    void *ComponentLists[COMPONENT_COUNT];
 
+    ComponentLists[INDEX_TRANSFORM] = TransformComponents;
+    ComponentLists[INDEX_PART] = PartComponents;
+    ComponentLists[INDEX_CHARACTER] = CharacterComponents;
+    ComponentLists[INDEX_CAMERA] = CameraComponents;
+
+    unsigned int entitycount = 0;
+
+    struct GameEntity *world = add_world_entity(&entitycount);
+
+    struct GameEntity gamecamera;
+
+    register_entity(world, &gamecamera, &entitycount);
+
+    add_component(&gamecamera, INDEX_TRANSFORM, ComponentLists);
+    add_component(&gamecamera, INDEX_CAMERA, ComponentLists);
+
+    struct TransformComponent* cameratransform = &((struct TransformComponent*)ComponentLists[INDEX_TRANSFORM])[gamecamera.id];
+    struct CameraComponent* cameracomponent = &((struct CameraComponent*)ComponentLists[INDEX_CAMERA])[gamecamera.id];
+
+    cameracomponent->distance += 5.0;
+
+    Vector3 cubepos = (Vector3){0.0f, 1.25f, 0.0f};
+
+    bool isfirstfix = false;
 
     while (!WindowShouldClose()) {
+
         float ft = GetFrameTime();
-        int fps = GetFPS();
-        char fpstext[20] = "FPS: ";
-        snprintf(charbuffer, 128, "%d", fps);
-        char *fpschar = strcat(fpstext, charbuffer);
 
-        cubevel = (Vector3){0.0f, 0.0f, 0.0f};
+        float speed = 8.0f * ft;
 
-        float speed = 10.0f * ft;
+        Vector3 inputvel = getinputvector();
 
-        if (IsKeyDown(KEY_D)) {
-            cubevel.x = 1.0f;
-        }
-        if (IsKeyDown(KEY_A)) {
-            cubevel.x = -1.0f;
-        }
-        if (IsKeyDown(KEY_W)) {
-            cubevel.z = -1.0f;
-        }
-        if (IsKeyDown(KEY_S)) {
-            cubevel.z = 1.0f;
-        }
+        Vector3 rot;
+        rot.y = cameratransform->rotation.y;
 
-        normalizeXZ(&cubevel, 4.0f);
+        inputvel = Vector3RotateByQuaternion(inputvel, deg_to_quaternion(rot));
 
-        cubevel.x *= speed;
-        cubevel.z *= speed;
-        printf("X: %f\nY: %f\nZ: %f\n", cubevel.x, cubevel.y, cubevel.z);
+        inputvel.x *= speed;
+        inputvel.z *= speed;
 
-        updatepos(&cubepos, &cubevel);
+        update_pos(&cubepos, &inputvel);
 
-        camera.target = cubepos;
+        handlecamerainput(cameratransform, cameracomponent, cubepos);
+
+        camera_update(&camera, ComponentLists);
 
         BeginDrawing();
         ClearBackground(BLACK);
-        DrawText(fpschar, 20, 20, 20, WHITE);
+        DrawFPS(20, 20);
         BeginMode3D(camera);
 
-        DrawGrid(25, 1);
+        DrawGrid(16, 0.5f);
 
-        DrawCubeV(cubepos, (Vector3){1.0f, 1.0f, 1.0f}, PURPLE);
+        DrawCubeV(cubepos, (Vector3){1.0f, 2.5f, 0.5f}, PURPLE);
 
         EndMode3D();
         EndDrawing();
     }
 
-    free(charbuffer);
+    free(world->children);
     CloseWindow();
-    close_socket(sock);
     return 1;
 }
