@@ -13,11 +13,12 @@ struct GameEntity{
 struct TransformComponent{
     Vector3 translation;
     Vector3 rotation;
-    Vector3 scale;
+    //Vector3 scale; commented out for now because scale is fucking cringe
 };
 
 struct PartComponent{
     Vector3 size;
+    Color color;
 };
 
 struct CharacterComponent{
@@ -29,6 +30,7 @@ struct CameraComponent{
     float fov;
     float distance;
     bool isfirst;
+    Camera camera;
 };
 
 enum ComponentType {
@@ -54,6 +56,7 @@ unsigned int ComponentMasks[] = {
 };
 
 void add_component(struct GameEntity *entity, enum ComponentIndex component, void **componentlists){
+
     unsigned int mask = ComponentMasks[component];
 
     if (entity->componentMask & mask)
@@ -69,7 +72,7 @@ void add_component(struct GameEntity *entity, enum ComponentIndex component, voi
         break;
         }
     case INDEX_PART: {
-        ((struct PartComponent*)storage)[entity->id] = (struct PartComponent){0};
+        ((struct PartComponent*)storage)[entity->id] = (struct PartComponent){.size={2, 0.5, 1}, .color=PURPLE};
         break;
         }
     case INDEX_CHARACTER: {
@@ -81,6 +84,7 @@ void add_component(struct GameEntity *entity, enum ComponentIndex component, voi
         break;
         }
     }
+
     entity->componentMask |= mask;
 }
 
@@ -88,7 +92,7 @@ struct GameEntity* add_world_entity(unsigned int *entitycount) {
     static struct GameEntity world;
     world.id = 0;
     world.parent = NULL;
-    world.children = malloc(sizeof(struct GameEntity*) * 2);
+    world.children = malloc(sizeof(struct GameEntity*) * 16);
     world.childCount = 0;
     world.componentMask = 0;
     (*entitycount)++;
@@ -104,4 +108,11 @@ void register_entity(struct GameEntity *parent, struct GameEntity *newentity, un
     parent->children[parent->childCount] = newentity;
     parent->childCount++;
     (*entitycount)++;
+}
+
+void initialize_components(void **componentlists, int MAX_ENTITIES) {
+    componentlists[INDEX_TRANSFORM] = malloc(sizeof(struct TransformComponent) * MAX_ENTITIES);
+    componentlists[INDEX_PART] = malloc(sizeof(struct PartComponent) * MAX_ENTITIES);
+    componentlists[INDEX_CHARACTER] = malloc(sizeof(struct CharacterComponent) * MAX_ENTITIES);
+    componentlists[INDEX_CAMERA] = malloc(sizeof(struct CameraComponent) * MAX_ENTITIES);
 }

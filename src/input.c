@@ -1,7 +1,7 @@
 #include <raylib.h>
 #include "math.h"
 
-Vector3 getinputvector() {
+Vector3 get_input_vector() {
     Vector3 inputvel = {0};
     if (IsKeyDown(KEY_D)) {
         inputvel.x += 1.0f;

@@ -3,6 +3,6 @@
 
 #include <raylib.h>
 
-Vector3 getinputvector();
+Vector3 get_input_vector();
 
 #endif

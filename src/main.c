@@ -1,18 +1,21 @@
-#include "physics.h"
-#include "objects.h"
+#include "components.h"
 #include "camera.h"
 #include "math.h"
 #include "input.h"
+#include "rendering.h"
 #include <raymath.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <raylib.h>
 #include <sys/types.h>
+#include <cjson/cJSON.h>
 
 #define PORT 7777
 #define SERVER_ADDR "connect.playvortex.io"
 #define MAX_ENTITIES 512
+#define TEST_MAP "[{\"Tr\":0,\"P\":[0,0,0],\"S\":[200,2,200],\"R\":[0,0,0],\"T\":\"Part\",\"Shape\":\"Block\",\"C\":\"7d7d85\"},{\"Tr\":0,\"P\":[0,7,-10],\"S\":[2,12,2],\"R\":[0,0,0],\"T\":\"Part\",\"Shape\":\"Block\",\"C\":\"63452c\"},{\"Tr\":0,\"P\":[0,3.5,-10],\"S\":[8,1,8],\"R\":[0,0,0],\"T\":\"Part\",\"Shape\":\"Block\",\"C\":\"26a269\"},{\"Tr\":0,\"P\":[0,5.5,-10],\"S\":[7,1,7],\"R\":[0,0,0],\"T\":\"Part\",\"Shape\":\"Block\",\"C\":\"26a269\"},{\"Tr\":0,\"P\":[0,7.5,-10],\"S\":[6,1,6],\"R\":[0,0,0],\"T\":\"Part\",\"Shape\":\"Block\",\"C\":\"26a269\"},{\"Tr\":0,\"P\":[0,9.5,-10],\"S\":[5,1,5],\"R\":[0,0,0],\"T\":\"Part\",\"Shape\":\"Block\",\"C\":\"26a269\"},{\"Tr\":0,\"P\":[0,11.5,-10],\"S\":[4,1,4],\"R\":[0,0,0],\"T\":\"Part\",\"Shape\":\"Block\",\"C\":\"26a269\"}]"
+
 char packet_buffer[256];
 int sock;
 
@@ -24,24 +27,13 @@ int main(int argc, char *argv[]) {
     InitWindow(screenWidth, screenHeight, "Tornado - Graphics Test");
     SetTargetFPS(120);
 
-    Camera camera = { 0 };
-    camera.position = (Vector3){ 0.0f, 5.0f, 9.0f };    // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-    camera.fovy = 60.0f;                                // Camera field-of-view Y
-    camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+    struct Renderer renderer;
 
-    struct TransformComponent TransformComponents[MAX_ENTITIES];
-    struct PartComponent PartComponents[MAX_ENTITIES];
-    struct CharacterComponent CharacterComponents[MAX_ENTITIES];
-    struct CameraComponent CameraComponents[MAX_ENTITIES];
+    initialize_renderer(&renderer);
 
-    void *ComponentLists[COMPONENT_COUNT];
+    void *componentlists[COMPONENT_COUNT] = {0};
 
-    ComponentLists[INDEX_TRANSFORM] = TransformComponents;
-    ComponentLists[INDEX_PART] = PartComponents;
-    ComponentLists[INDEX_CHARACTER] = CharacterComponents;
-    ComponentLists[INDEX_CAMERA] = CameraComponents;
+    initialize_components(componentlists, MAX_ENTITIES);
 
     unsigned int entitycount = 0;
 
@@ -51,17 +43,48 @@ int main(int argc, char *argv[]) {
 
     register_entity(world, &gamecamera, &entitycount);
 
-    add_component(&gamecamera, INDEX_TRANSFORM, ComponentLists);
-    add_component(&gamecamera, INDEX_CAMERA, ComponentLists);
+    add_component(&gamecamera, INDEX_TRANSFORM, componentlists);
+    add_component(&gamecamera, INDEX_CAMERA, componentlists);
 
-    struct TransformComponent* cameratransform = &((struct TransformComponent*)ComponentLists[INDEX_TRANSFORM])[gamecamera.id];
-    struct CameraComponent* cameracomponent = &((struct CameraComponent*)ComponentLists[INDEX_CAMERA])[gamecamera.id];
+    struct TransformComponent* cameratransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[gamecamera.id];
+    struct CameraComponent* cameracomponent = &((struct CameraComponent*)componentlists[INDEX_CAMERA])[gamecamera.id];
+    cameracomponent->distance = 5.0;
 
-    cameracomponent->distance += 5.0;
+    Camera camera = {0};
+    camera.fovy = 60.0f;
 
-    Vector3 cubepos = (Vector3){0.0f, 1.25f, 0.0f};
+    cameracomponent->camera = camera;
 
-    bool isfirstfix = false;
+    renderer.maincamera = &gamecamera;
+
+    struct GameEntity mapparts[32];
+
+    cJSON *map = cJSON_Parse(TEST_MAP);
+
+    int count = cJSON_GetArraySize(map);
+
+    for (int i = 0; i < count; i++) {
+        cJSON *part = cJSON_GetArrayItem(map, i);
+
+        register_entity(world, &mapparts[i], &entitycount);
+
+        add_component(&mapparts[i], INDEX_PART, componentlists);
+        add_component(&mapparts[i], INDEX_TRANSFORM, componentlists);
+
+        Vector3 position = {cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "P"), 0)->valuedouble, cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "P"), 1)->valuedouble, cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "P"), 2)->valuedouble};
+        Vector3 scale = {cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "S"), 0)->valuedouble, cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "S"), 1)->valuedouble, cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "S"), 2)->valuedouble};
+        unsigned int value = strtoul(cJSON_GetObjectItemCaseSensitive(part, "C")->valuestring, NULL, 16);
+        value = (value << 8) | 0xFF;
+        Color color = GetColor(value);
+        ((struct PartComponent*)componentlists[INDEX_PART])[mapparts[i].id].size = scale;
+        ((struct PartComponent*)componentlists[INDEX_PART])[mapparts[i].id].color = color;
+        ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[mapparts[i].id].translation = position;
+
+        renderer.renderables[i] = mapparts[i].id;
+        renderer.renderablecount++;
+    }
+
+    cJSON_free(map);
 
     while (!WindowShouldClose()) {
 
@@ -69,7 +92,7 @@ int main(int argc, char *argv[]) {
 
         float speed = 8.0f * ft;
 
-        Vector3 inputvel = getinputvector();
+        Vector3 inputvel = get_input_vector();
 
         Vector3 rot;
         rot.y = cameratransform->rotation.y;
@@ -79,26 +102,20 @@ int main(int argc, char *argv[]) {
         inputvel.x *= speed;
         inputvel.z *= speed;
 
-        update_pos(&cubepos, &inputvel);
+        //update_pos(&cubepos, &inputvel);
 
-        handlecamerainput(cameratransform, cameracomponent, cubepos);
+        handle_camera_input(cameratransform, cameracomponent, (Vector3){0, 0, 0});
 
-        camera_update(&camera, ComponentLists);
+        camera_update(&gamecamera, componentlists);
 
-        BeginDrawing();
-        ClearBackground(BLACK);
-        DrawFPS(20, 20);
-        BeginMode3D(camera);
-
-        DrawGrid(16, 0.5f);
-
-        DrawCubeV(cubepos, (Vector3){1.0f, 2.5f, 0.5f}, PURPLE);
-
-        EndMode3D();
-        EndDrawing();
+        render(&renderer, componentlists);
     }
 
     free(world->children);
+    free(componentlists[INDEX_TRANSFORM]);
+    free(componentlists[INDEX_PART]);
+    free(componentlists[INDEX_CHARACTER]);
+    free(componentlists[INDEX_CAMERA]);
     CloseWindow();
     return 1;
 }

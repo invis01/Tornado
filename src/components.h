@@ -1,5 +1,5 @@
-#ifndef OBJECTS_HEADER
-#define OBJECTS_HEADER
+#ifndef COMPONENTS_HEADER
+#define COMPONENTS_HEADER
 
 #include <raylib.h>
 
@@ -14,11 +14,11 @@ struct GameEntity{
 struct TransformComponent{
     Vector3 translation;
     Vector3 rotation;
-    Vector3 scale;
 };
 
 struct PartComponent{
     Vector3 size;
+    Color color;
 };
 
 struct CharacterComponent{
@@ -30,6 +30,7 @@ struct CameraComponent{
     float fov;
     float distance;
     bool isfirst;
+    Camera camera;
 };
 
 enum ComponentType {
@@ -50,5 +51,6 @@ enum ComponentIndex {
 void add_component(struct GameEntity *entity, enum ComponentIndex component, void *componentlists);
 struct GameEntity* add_world_entity(unsigned int *entitycount);
 void register_entity(struct GameEntity *parent, struct GameEntity *newentity, unsigned int *entitycount);
+void initialize_components(void **componentlists, int MAX_ENTITIES);
 
 #endif
