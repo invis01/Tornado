@@ -41,12 +41,18 @@ int main(int argc, char *argv[]) {
 
     struct GameEntity gamecamera;
 
+    struct GameEntity character;
+
     register_entity(world, &gamecamera, &entitycount);
+    register_entity(world, &character, &entitycount);
 
     add_component(&gamecamera, INDEX_TRANSFORM, componentlists);
     add_component(&gamecamera, INDEX_CAMERA, componentlists);
 
+    add_component(&character, INDEX_TRANSFORM, componentlists);
+
     struct TransformComponent* cameratransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[gamecamera.id];
+    struct TransformComponent* charactertransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id];
     struct CameraComponent* cameracomponent = &((struct CameraComponent*)componentlists[INDEX_CAMERA])[gamecamera.id];
     cameracomponent->distance = 5.0;
 
@@ -86,6 +92,8 @@ int main(int argc, char *argv[]) {
 
     cJSON_free(map);
 
+    charactertransform->translation = (Vector3){0.0f, 2.0f, 0.0f};
+
     while (!WindowShouldClose()) {
 
         float ft = GetFrameTime();
@@ -104,7 +112,7 @@ int main(int argc, char *argv[]) {
 
         //update_pos(&cubepos, &inputvel);
 
-        handle_camera_input(cameratransform, cameracomponent, (Vector3){0, 0, 0});
+        handle_camera_input(cameratransform, cameracomponent, charactertransform->translation);
 
         camera_update(&gamecamera, componentlists);
 
