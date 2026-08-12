@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "Tornado - Graphics Test");
-    SetTargetFPS(120);
+    SetTargetFPS(420);
 
     struct Renderer renderer;
 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 
         Vector3 inputvel = get_input_vector();
 
-        Vector3 rot;
+        Vector3 rot = {0};
         rot.y = cameratransform->rotation.y;
 
         inputvel = Vector3RotateByQuaternion(inputvel, deg_to_quaternion(rot));
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
         inputvel.x *= speed;
         inputvel.z *= speed;
 
-        //update_pos(&cubepos, &inputvel);
+        charactertransform->translation = Vector3Add(charactertransform->translation, inputvel);
 
         handle_camera_input(cameratransform, cameracomponent, charactertransform->translation);
 
