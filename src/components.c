@@ -13,7 +13,6 @@ struct GameEntity{
 struct TransformComponent{
     Vector3 translation;
     Vector3 rotation;
-    //Vector3 scale; commented out for now because scale is fucking cringe
 };
 
 struct RenderableComponent{
