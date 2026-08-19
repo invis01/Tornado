@@ -51,11 +51,18 @@ int main(int argc, char *argv[]) {
 
     add_component(&character, INDEX_TRANSFORM, componentlists);
     add_component(&character, INDEX_CHARACTER, componentlists);
+    add_component(&character, INDEX_RENDERABLE, componentlists);
 
     ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id].translation = (Vector3){0, 0, 0};
 
-    //renderer.renderables = &character.id;
-    //renderer.renderablecount++;
+
+    ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[character.id].isPart = false;
+    ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[character.id].color = RED;
+    ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[character.id].model = LoadModelFromMesh(GenMeshCube(2.0f, 4.0f, 1.0f));
+
+
+    renderer.renderables = &character.id;
+    renderer.renderablecount++;
 
     struct TransformComponent* cameratransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[gamecamera.id];
     struct TransformComponent* charactertransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id];
@@ -127,7 +134,7 @@ int main(int argc, char *argv[]) {
     }
 
     free(world->children);
-    free(renderer.renderables);
+    //free(renderer.renderables);
     free(componentlists[INDEX_TRANSFORM]);
     free(componentlists[INDEX_RENDERABLE]);
     free(componentlists[INDEX_CHARACTER]);

@@ -22,11 +22,18 @@ void render(struct Renderer *renderer, void **componentlists) {
         if (RenderableComponentlist[renderer->renderables[i]].isPart) {
             DrawCubeV(transformcomponentlist[renderer->renderables[i]].translation, transformcomponentlist[renderer->renderables[i]].size, RenderableComponentlist[renderer->renderables[i]].color);
         } else {
-            Matrix rotation = MatrixRotateXYZ(transformcomponentlist[renderer->renderables[i]].translation);
 
-            Matrix scale = MatrixScale(transformcomponentlist[renderer->renderables[i]].size.x, transformcomponentlist[renderer->renderables[i]].size.y, transformcomponentlist[renderer->renderables[i]].size.z);
+            Vector3 radiantranslation = {0};
 
-            RenderableComponentlist[renderer->renderables[i]].model.transform = MatrixMultiply(rotation, scale);
+            radiantranslation.x = transformcomponentlist[renderer->renderables[i]].rotation.x * DEG2RAD;
+            radiantranslation.y = transformcomponentlist[renderer->renderables[i]].rotation.y * DEG2RAD;
+            radiantranslation.z = transformcomponentlist[renderer->renderables[i]].rotation.z * DEG2RAD;
+
+            Matrix rotation = MatrixRotateXYZ(radiantranslation);
+
+            //Matrix scale = MatrixScale(transformcomponentlist[renderer->renderables[i]].size.x, transformcomponentlist[renderer->renderables[i]].size.y, transformcomponentlist[renderer->renderables[i]].size.z);
+
+            RenderableComponentlist[renderer->renderables[i]].model.transform = rotation;
 
             DrawModel(RenderableComponentlist[renderer->renderables[i]].model, transformcomponentlist[renderer->renderables[i]].translation, 1, RenderableComponentlist[renderer->renderables[i]].color);
         }
@@ -38,7 +45,7 @@ void render(struct Renderer *renderer, void **componentlists) {
 }
 
 void initialize_renderer(struct Renderer *renderer) {
-    renderer->renderables = malloc(sizeof(int)*16);
+    renderer->renderables = malloc(sizeof(unsigned int)*16);
     renderer->renderablecount = 0;
     renderer->isdirty = false;
     renderer->displayfps = false;
