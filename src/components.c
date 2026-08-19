@@ -16,7 +16,7 @@ struct TransformComponent{
     //Vector3 scale; commented out for now because scale is fucking cringe
 };
 
-struct PartComponent{
+struct RenderableComponent{
     Vector3 size;
     Color color;
 };
@@ -35,14 +35,14 @@ struct CameraComponent{
 
 enum ComponentType {
     COMPONENT_TRANSFORM = 1 << 0,
-    COMPONENT_PART = 1 << 1,
+    COMPONENT_RENDERABLE = 1 << 1,
     COMPONENT_CHARACTER = 1 << 2,
     COMPONENT_CAMERA = 1 << 3,
 };
 
 enum ComponentIndex {
     INDEX_TRANSFORM,
-    INDEX_PART,
+    INDEX_RENDERABLE,
     INDEX_CHARACTER,
     INDEX_CAMERA,
     COMPONENT_COUNT
@@ -50,7 +50,7 @@ enum ComponentIndex {
 
 unsigned int ComponentMasks[] = {
     COMPONENT_TRANSFORM,
-    COMPONENT_PART,
+    COMPONENT_RENDERABLE,
     COMPONENT_CHARACTER,
     COMPONENT_CAMERA,
 };
@@ -71,8 +71,8 @@ void add_component(struct GameEntity *entity, enum ComponentIndex component, voi
         ((struct TransformComponent*)storage)[entity->id] = (struct TransformComponent){0};
         break;
         }
-    case INDEX_PART: {
-        ((struct PartComponent*)storage)[entity->id] = (struct PartComponent){.size={2, 0.5, 1}, .color=PURPLE};
+    case INDEX_RENDERABLE: {
+        ((struct RenderableComponent*)storage)[entity->id] = (struct RenderableComponent){.size={2, 0.5, 1}, .color=PURPLE};
         break;
         }
     case INDEX_CHARACTER: {
@@ -112,7 +112,7 @@ void register_entity(struct GameEntity *parent, struct GameEntity *newentity, un
 
 void initialize_components(void **componentlists, int MAX_ENTITIES) {
     componentlists[INDEX_TRANSFORM] = malloc(sizeof(struct TransformComponent) * MAX_ENTITIES);
-    componentlists[INDEX_PART] = malloc(sizeof(struct PartComponent) * MAX_ENTITIES);
+    componentlists[INDEX_RENDERABLE] = malloc(sizeof(struct RenderableComponent) * MAX_ENTITIES);
     componentlists[INDEX_CHARACTER] = malloc(sizeof(struct CharacterComponent) * MAX_ENTITIES);
     componentlists[INDEX_CAMERA] = malloc(sizeof(struct CameraComponent) * MAX_ENTITIES);
 }

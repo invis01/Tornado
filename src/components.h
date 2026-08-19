@@ -16,7 +16,7 @@ struct TransformComponent{
     Vector3 rotation;
 };
 
-struct PartComponent{
+struct RenderableComponent{
     Vector3 size;
     Color color;
 };
@@ -35,14 +35,14 @@ struct CameraComponent{
 
 enum ComponentType {
     COMPONENT_TRANSFORM = 1 << 0,
-    COMPONENT_PART = 1 << 1,
+    COMPONENT_RENDERABLE = 1 << 1,
     COMPONENT_CHARACTER = 1 << 2,
     COMPONENT_CAMERA = 1 << 3,
 };
 
 enum ComponentIndex {
     INDEX_TRANSFORM,
-    INDEX_PART,
+    INDEX_RENDERABLE,
     INDEX_CHARACTER,
     INDEX_CAMERA,
     COMPONENT_COUNT

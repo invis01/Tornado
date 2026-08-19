@@ -18,7 +18,7 @@ void render(struct Renderer *renderer, void **componentlists) {
     struct CameraComponent *cameracomponentlist = componentlists[INDEX_CAMERA];
     struct CameraComponent *cameracomponent = &cameracomponentlist[renderer->maincamera->id];
 
-    struct PartComponent *partcomponentlist = componentlists[INDEX_PART];
+    struct RenderableComponent *RenderableComponentlist = componentlists[INDEX_RENDERABLE];
 
 
     BeginDrawing();
@@ -26,7 +26,7 @@ void render(struct Renderer *renderer, void **componentlists) {
     BeginMode3D(cameracomponent->camera);
 
     for (int i=0; i<renderer->renderablecount; i++) {
-        DrawCubeV(transformcomponentlist[renderer->renderables[i]].translation, partcomponentlist[renderer->renderables[i]].size, partcomponentlist[renderer->renderables[i]].color);
+        DrawCubeV(transformcomponentlist[renderer->renderables[i]].translation, RenderableComponentlist[renderer->renderables[i]].size, RenderableComponentlist[renderer->renderables[i]].color);
     }
 
     EndMode3D();

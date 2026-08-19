@@ -51,10 +51,7 @@ int main(int argc, char *argv[]) {
 
     add_component(&character, INDEX_TRANSFORM, componentlists);
     add_component(&character, INDEX_CHARACTER, componentlists);
-    add_component(&character, INDEX_PART, componentlists);
 
-    ((struct PartComponent*)componentlists[INDEX_PART])[character.id].size = (Vector3){1, 1, 1};
-    ((struct PartComponent*)componentlists[INDEX_PART])[character.id].color = RED;
     ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id].translation = (Vector3){0, 0, 0};
 
     renderer.renderables = &character.id;
@@ -83,7 +80,7 @@ int main(int argc, char *argv[]) {
 
         register_entity(world, &mapparts[i], &entitycount);
 
-        add_component(&mapparts[i], INDEX_PART, componentlists);
+        add_component(&mapparts[i], INDEX_RENDERABLE, componentlists);
         add_component(&mapparts[i], INDEX_TRANSFORM, componentlists);
 
         Vector3 position = {cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "P"), 0)->valuedouble, cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "P"), 1)->valuedouble, cJSON_GetArrayItem(cJSON_GetObjectItemCaseSensitive(part, "P"), 2)->valuedouble};
@@ -91,17 +88,17 @@ int main(int argc, char *argv[]) {
         unsigned int value = strtoul(cJSON_GetObjectItemCaseSensitive(part, "C")->valuestring, NULL, 16);
         value = (value << 8) | 0xFF;
         Color color = GetColor(value);
-        ((struct PartComponent*)componentlists[INDEX_PART])[mapparts[i].id].size = scale;
-        ((struct PartComponent*)componentlists[INDEX_PART])[mapparts[i].id].color = color;
+        ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[mapparts[i].id].size = scale;
+        ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[mapparts[i].id].color = color;
         ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[mapparts[i].id].translation = position;
 
-        renderer.renderables[i] = mapparts[i].id;
+        renderer.renderables[renderer.renderablecount] = mapparts[i].id;
         renderer.renderablecount++;
     }
 
     cJSON_free(map);
 
-    charactertransform->translation = (Vector3){0.0f, 2.0f, 0.0f};
+    charactertransform->translation = (Vector3){0.0f, 4.0f, 0.0f};
 
     while (!WindowShouldClose()) {
 
@@ -130,7 +127,7 @@ int main(int argc, char *argv[]) {
 
     free(world->children);
     free(componentlists[INDEX_TRANSFORM]);
-    free(componentlists[INDEX_PART]);
+    free(componentlists[INDEX_RENDERABLE]);
     free(componentlists[INDEX_CHARACTER]);
     free(componentlists[INDEX_CAMERA]);
     CloseWindow();
