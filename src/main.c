@@ -54,8 +54,8 @@ int main(int argc, char *argv[]) {
 
     ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id].translation = (Vector3){0, 0, 0};
 
-    renderer.renderables = &character.id;
-    renderer.renderablecount++;
+    //renderer.renderables = &character.id;
+    //renderer.renderablecount++;
 
     struct TransformComponent* cameratransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[gamecamera.id];
     struct TransformComponent* charactertransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id];
@@ -88,9 +88,10 @@ int main(int argc, char *argv[]) {
         unsigned int value = strtoul(cJSON_GetObjectItemCaseSensitive(part, "C")->valuestring, NULL, 16);
         value = (value << 8) | 0xFF;
         Color color = GetColor(value);
-        ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[mapparts[i].id].size = scale;
+
         ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[mapparts[i].id].color = color;
         ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[mapparts[i].id].translation = position;
+        ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[mapparts[i].id].size = scale;
 
         renderer.renderables[renderer.renderablecount] = mapparts[i].id;
         renderer.renderablecount++;
@@ -126,6 +127,7 @@ int main(int argc, char *argv[]) {
     }
 
     free(world->children);
+    free(renderer.renderables);
     free(componentlists[INDEX_TRANSFORM]);
     free(componentlists[INDEX_RENDERABLE]);
     free(componentlists[INDEX_CHARACTER]);

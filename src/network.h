@@ -13,8 +13,6 @@ ssize_t receive_packet(int sock, char *buffer, size_t size);
 
 int close_socket(int socket);
 
-int serverlogin();
-
 #pragma pack(push, 1)
 struct StatePacket {
     uint8_t  zeroes[4];
@@ -41,5 +39,6 @@ struct StatePacket {
 #pragma pack(pop)
 
 void initialize_playerstate(struct StatePacket *player);
+int serverlogin(int *sock, char* packet_buffer);
 
 #endif

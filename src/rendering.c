@@ -1,15 +1,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <raylib.h>
+#include <raymath.h>
 #include "components.h"
-
-struct Renderer {
-    unsigned int *renderables;
-    int renderablecount;
-    bool isdirty;
-    bool displayfps;
-    struct GameEntity *maincamera;
-};
+#include "rendering.h"
 
 void render(struct Renderer *renderer, void **componentlists) {
     struct TransformComponent *transformcomponentlist = componentlists[INDEX_TRANSFORM];
@@ -20,13 +14,22 @@ void render(struct Renderer *renderer, void **componentlists) {
 
     struct RenderableComponent *RenderableComponentlist = componentlists[INDEX_RENDERABLE];
 
-
     BeginDrawing();
     ClearBackground(BLACK);
     BeginMode3D(cameracomponent->camera);
 
     for (int i=0; i<renderer->renderablecount; i++) {
-        DrawCubeV(transformcomponentlist[renderer->renderables[i]].translation, RenderableComponentlist[renderer->renderables[i]].size, RenderableComponentlist[renderer->renderables[i]].color);
+        if (RenderableComponentlist[renderer->renderables[i]].isPart) {
+            DrawCubeV(transformcomponentlist[renderer->renderables[i]].translation, transformcomponentlist[renderer->renderables[i]].size, RenderableComponentlist[renderer->renderables[i]].color);
+        } else {
+            Matrix rotation = MatrixRotateXYZ(transformcomponentlist[renderer->renderables[i]].translation);
+
+            Matrix scale = MatrixScale(transformcomponentlist[renderer->renderables[i]].size.x, transformcomponentlist[renderer->renderables[i]].size.y, transformcomponentlist[renderer->renderables[i]].size.z);
+
+            RenderableComponentlist[renderer->renderables[i]].model.transform = MatrixMultiply(rotation, scale);
+
+            DrawModel(RenderableComponentlist[renderer->renderables[i]].model, transformcomponentlist[renderer->renderables[i]].translation, 1, RenderableComponentlist[renderer->renderables[i]].color);
+        }
     }
 
     EndMode3D();

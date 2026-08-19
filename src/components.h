@@ -14,11 +14,13 @@ struct GameEntity{
 struct TransformComponent{
     Vector3 translation;
     Vector3 rotation;
+    Vector3 size;
 };
 
 struct RenderableComponent{
-    Vector3 size;
+    bool isPart;
     Color color;
+    Model model;
 };
 
 struct CharacterComponent{
@@ -48,7 +50,7 @@ enum ComponentIndex {
     COMPONENT_COUNT
 };
 
-void add_component(struct GameEntity *entity, enum ComponentIndex component, void *componentlists);
+void add_component(struct GameEntity *entity, enum ComponentIndex component, void **componentlists);
 struct GameEntity* add_world_entity(unsigned int *entitycount);
 void register_entity(struct GameEntity *parent, struct GameEntity *newentity, unsigned int *entitycount);
 void initialize_components(void **componentlists, int MAX_ENTITIES);

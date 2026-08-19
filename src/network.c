@@ -5,11 +5,11 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <stdbool.h>
+#include "network.h"
 
 #define FIXEDPAYLOAD 0x6, 0x0, 0x0, 0x0, 0x40, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x39, 0x61, 0x66, 0x33, 0x62, 0x37, 0x33, 0x33, 0x35, 0x37, 0x66, 0x63, 0x34, 0x32, 0x30, 0x32, 0x35, 0x62, 0x64, 0x37, 0x38, 0x34, 0x31, 0x38, 0x63, 0x62, 0x31, 0x39, 0x32, 0x34, 0x37, 0x64, 0x34, 0x65, 0x35, 0x39, 0x64, 0x61, 0x61, 0x30, 0x38, 0x65, 0x64, 0x39, 0x30, 0x35, 0x36, 0x37, 0x30, 0x65, 0x30, 0x31, 0x63, 0x65, 0x32, 0x65, 0x39, 0x34, 0x66, 0x65, 0x36, 0x31, 0x37, 0x30
 
-static in_addr_t resolvedomain(const char *domain)
-{
+static in_addr_t resolvedomain(const char *domain) {
     struct addrinfo hints;
     struct addrinfo *result;
     int status;
@@ -84,7 +84,7 @@ int serverlogin(int *sock, char* packet_buffer) {
     int c = 0x40;
     memcpy(constructed_payload + 4, &c, 4);
     memcpy(constructed_payload + 12, token, 64);*/
-    const static unsigned char constructed_payload[] = {FIXEDPAYLOAD};
+    static const unsigned char constructed_payload[] = {FIXEDPAYLOAD};
     if (send_packet(*sock, constructed_payload, 76) < 0) {
         return 0;
     }
@@ -96,31 +96,6 @@ int serverlogin(int *sock, char* packet_buffer) {
         return 0;
     }
 }
-
-#pragma pack(push, 1)
-struct StatePacket {
-    uint8_t  zeroes[4];
-    uint64_t userid;
-    uint64_t magic;
-    uint64_t username_length;
-    char     username[6];
-    float    pos_x;
-    float    pos_y;
-    float    pos_z;
-    float    yaw;
-    bool     walking;
-    bool     on_ground;
-    uint8_t  zeroes2[4];
-    uint8_t  shirt_magic;
-    uint32_t shirtid;
-    uint8_t  pants_magic;
-    uint32_t pantsid;
-    uint8_t  magic2[25];
-    uint8_t  face_magic;
-    uint32_t faceid;
-    bool     dead;
-};
-#pragma pack(pop)
 
 void initialize_playerstate(struct StatePacket *player) {
     memcpy(player->zeroes, (uint8_t[]){0x00, 0x00, 0x00, 0x00}, 4);

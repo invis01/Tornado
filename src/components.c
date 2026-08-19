@@ -1,51 +1,8 @@
 #include <raylib.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
-
-struct GameEntity{
-    unsigned int id;
-    struct GameEntity* parent;
-    struct GameEntity** children;
-    int childCount;
-    unsigned int componentMask;
-};
-
-struct TransformComponent{
-    Vector3 translation;
-    Vector3 rotation;
-};
-
-struct RenderableComponent{
-    Vector3 size;
-    Color color;
-};
-
-struct CharacterComponent{
-    char username[20];
-};
-
-struct CameraComponent{
-    Vector3 forward;
-    float fov;
-    float distance;
-    bool isfirst;
-    Camera camera;
-};
-
-enum ComponentType {
-    COMPONENT_TRANSFORM = 1 << 0,
-    COMPONENT_RENDERABLE = 1 << 1,
-    COMPONENT_CHARACTER = 1 << 2,
-    COMPONENT_CAMERA = 1 << 3,
-};
-
-enum ComponentIndex {
-    INDEX_TRANSFORM,
-    INDEX_RENDERABLE,
-    INDEX_CHARACTER,
-    INDEX_CAMERA,
-    COMPONENT_COUNT
-};
+#include "components.h"
 
 unsigned int ComponentMasks[] = {
     COMPONENT_TRANSFORM,
@@ -67,11 +24,11 @@ void add_component(struct GameEntity *entity, enum ComponentIndex component, voi
     default:
             break;
     case INDEX_TRANSFORM: {
-        ((struct TransformComponent*)storage)[entity->id] = (struct TransformComponent){0};
+        ((struct TransformComponent*)storage)[entity->id] = (struct TransformComponent){.translation={0.0f, 0.0f, 0.0f}, .rotation={0.0f, 0.0f, 0.0f}, .size={2.0f, 0.5f, 1.0f}};
         break;
         }
     case INDEX_RENDERABLE: {
-        ((struct RenderableComponent*)storage)[entity->id] = (struct RenderableComponent){.size={2, 0.5, 1}, .color=PURPLE};
+        ((struct RenderableComponent*)storage)[entity->id] = (struct RenderableComponent){.color=PINK, .isPart=true};
         break;
         }
     case INDEX_CHARACTER: {
