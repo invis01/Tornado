@@ -4,7 +4,7 @@
 #include "components.h"
 
 struct Renderer {
-    int *renderables;
+    unsigned int *renderables;
     int renderablecount;
     bool isdirty;
     bool displayfps;
@@ -23,7 +23,6 @@ void render(struct Renderer *renderer, void **componentlists) {
 
     BeginDrawing();
     ClearBackground(BLACK);
-    DrawFPS(20, 20);
     BeginMode3D(cameracomponent->camera);
 
     for (int i=0; i<renderer->renderablecount; i++) {
@@ -31,6 +30,7 @@ void render(struct Renderer *renderer, void **componentlists) {
     }
 
     EndMode3D();
+    DrawFPS(20, 20);
     EndDrawing();
 }
 

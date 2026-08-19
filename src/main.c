@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screenWidth, screenHeight, "Tornado - Graphics Test");
-    SetTargetFPS(420);
+    SetTargetFPS(120);
 
     struct Renderer renderer;
 
@@ -50,6 +50,15 @@ int main(int argc, char *argv[]) {
     add_component(&gamecamera, INDEX_CAMERA, componentlists);
 
     add_component(&character, INDEX_TRANSFORM, componentlists);
+    add_component(&character, INDEX_CHARACTER, componentlists);
+    add_component(&character, INDEX_PART, componentlists);
+
+    ((struct PartComponent*)componentlists[INDEX_PART])[character.id].size = (Vector3){1, 1, 1};
+    ((struct PartComponent*)componentlists[INDEX_PART])[character.id].color = RED;
+    ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id].translation = (Vector3){0, 0, 0};
+
+    renderer.renderables = &character.id;
+    renderer.renderablecount++;
 
     struct TransformComponent* cameratransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[gamecamera.id];
     struct TransformComponent* charactertransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id];

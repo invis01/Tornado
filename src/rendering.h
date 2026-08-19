@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 struct Renderer {
-    int *renderables;
+    unsigned int *renderables;
     int renderablecount;
     bool isdirty;
     bool displayfps;
