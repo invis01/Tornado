@@ -1,6 +1,5 @@
 #include "components.h"
 #include "camera.h"
-#include "math.h"
 #include "input.h"
 #include "rendering.h"
 #include "level.h"
@@ -55,13 +54,11 @@ int main(int argc, char *argv[]) {
 
     ((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[character.id].translation = (Vector3){0, 0, 0};
 
-
     ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[character.id].isPart = false;
     ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[character.id].color = RED;
     ((struct RenderableComponent*)componentlists[INDEX_RENDERABLE])[character.id].model = LoadModelFromMesh(GenMeshCube(2.0f, 4.0f, 1.0f));
 
-
-    renderer.renderables = &character.id;
+    renderer.renderables[0] = character.id;
     renderer.renderablecount++;
 
     struct TransformComponent* cameratransform = &((struct TransformComponent*)componentlists[INDEX_TRANSFORM])[gamecamera.id];
@@ -86,33 +83,14 @@ int main(int argc, char *argv[]) {
 
         float ft = GetFrameTime();
 
-        float speed = 8.0f * ft;
-
-        Vector3 inputvel = get_input_vector();
-
-        Vector3 rot = {0};
-        rot.y = cameratransform->rotation.y;
-
-        inputvel = Vector3RotateByQuaternion(inputvel, deg_to_quaternion(rot));
-
-        if (inputvel.x != 0 || inputvel.z != 0) {
-            charactertransform->rotation.y = Lerp(charactertransform->rotation.y, rot.y, 8.0f * ft);
-        }
-
-        inputvel.x *= speed;
-        inputvel.z *= speed;
-
-        charactertransform->translation = Vector3Add(charactertransform->translation, inputvel);
-
+        handle_input(cameratransform, charactertransform, ft);
         handle_camera_input(cameratransform, cameracomponent, charactertransform->translation);
-
         camera_update(&gamecamera, componentlists);
-
         render(&renderer, componentlists);
     }
 
     free(world->children);
-    //free(renderer.renderables);
+    free(renderer.renderables);
     free(componentlists[INDEX_TRANSFORM]);
     free(componentlists[INDEX_RENDERABLE]);
     free(componentlists[INDEX_CHARACTER]);
