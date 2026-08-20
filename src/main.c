@@ -121,6 +121,10 @@ int main(int argc, char *argv[]) {
 
         inputvel = Vector3RotateByQuaternion(inputvel, deg_to_quaternion(rot));
 
+        if (inputvel.x != 0 || inputvel.z != 0) {
+            charactertransform->rotation.y = Lerp(charactertransform->rotation.y, rot.y, 8.0f * ft);
+        }
+
         inputvel.x *= speed;
         inputvel.z *= speed;
 
